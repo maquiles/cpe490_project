@@ -1,0 +1,181 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil Consolas;}{\f1\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red155\green155\blue155;\red30\green30\blue30;\red220\green220\blue220;\red214\green157\blue133;\red180\green180\blue180;\red189\green99\blue197;\red87\green166\blue74;\red181\green206\blue168;\red86\green156\blue214;\red78\green201\blue176;\red218\green218\blue218;\red200\green200\blue200;\red127\green127\blue127;\red184\green215\blue163;}
+{\*\generator Riched20 10.0.10240}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\cf1\highlight2\f0\fs19\lang9 #include\cf3  \cf4 "stdafx.h"\cf3\par
+\cf1 #include\cf3  \cf4 <iostream>\cf3\par
+\cf1 #include\cf3  \cf4 <winsock2.h>\cf3\par
+\cf1 #include\cf3  \cf4 <ws2tcpip.h>\cf3\par
+\cf1 #include\cf3  \cf4 <string>\cf3\par
+\cf1 #include\cf3  \cf4 <thread>\cf3\par
+\cf1 #include\cf3  \cf4 <vector>\cf3\par
+\par
+\cf1 #pragma\cf3  \cf1 comment\cf3  \cf5 (\cf1 lib\cf5 ,\cf3  \cf4 "Ws2_32.lib"\cf5 )\cf3\par
+\par
+\cf1 #define\cf3  \cf6 IP_ADDRESS\cf3  \cf4 "155.246.161.68"\cf3  \cf7 //IP of my laptop from ipconfig\cf3\par
+\cf1 #define\cf3  \cf6 DEFAULT_PORT\cf3  \cf4 "3504"\cf3  \cf7 //not sure why but it works\cf3\par
+\cf1 #define\cf3  \cf6 DEFAULT_BUFLEN\cf3  \cf8 512\cf3  \cf7 //not sure why but it works\cf3\par
+\par
+\cf9 struct\cf3  \cf10 client_type\cf5\{\cf3\par
+\tab\cf9 int\cf3  \cf11 id\cf5 ;\cf3\par
+\tab\cf10 SOCKET\cf3  \cf11 socket\cf5 ;\cf3\par
+\cf5\};\cf3\par
+\par
+\cf9 const\cf3  \cf9 char\cf3  \cf12 OPTION_VALUE\cf3  \cf5 =\cf3  \cf8 1\cf5 ;\cf3\par
+\cf9 const\cf3  \cf9 int\cf3  \cf12 MAX_CLIENTS\cf3  \cf5 =\cf3  \cf8 5\cf5 ;\cf3   \cf7 //only 5 people can be in the chat or the sever is 'full'\cf3\par
+\par
+\cf7 //Function Prototypes\cf3\par
+\cf9 int\cf3  \cf12 process_client\cf5 (\cf10 client_type\cf3  \cf5 &\cf3 new_client\cf5 ,\cf3  \cf12 std\cf5 ::\cf10 vector\cf5 <\cf10 client_type\cf5 >\cf3  \cf5 &\cf3 client_array\cf5 ,\cf3  \cf12 std\cf5 ::\cf10 thread\cf3  \cf5 &\cf3 thread\cf5 );\cf3\par
+\cf9 int\cf3  \cf12 main\cf5 ();\cf3\par
+\par
+\cf9 int\cf3  \cf12 process_client\cf5 (\cf10 client_type\cf3  \cf5 &\cf13 new_client\cf5 ,\cf3  \cf12 std\cf5 ::\cf10 vector\cf5 <\cf10 client_type\cf5 >\cf3  \cf5 &\cf13 client_array\cf5 ,\cf3  \cf12 std\cf5 ::\cf10 thread\cf3  \cf5 &\cf13 thread\cf5 )\cf3\par
+\cf5\{\cf3\par
+\tab\cf12 std\cf5 ::\cf10 string\cf3  \cf12 msg\cf3  \cf5 =\cf3  \cf4 ""\cf5 ;\cf3\par
+\tab\cf9 char\cf3  \cf12 tempmsg\cf5 [\cf6 DEFAULT_BUFLEN\cf5 ]\cf3  \cf5 =\cf3  \cf4 ""\cf5 ;\cf3\par
+\par
+\tab\cf7 //Session\cf3\par
+\tab\cf9 while\cf3  \cf5 (\cf8 1\cf5 )\{\cf3\par
+\tab\tab\cf12 memset\cf5 (\cf12 tempmsg\cf5 ,\cf3  \cf8 0\cf5 ,\cf3  \cf6 DEFAULT_BUFLEN\cf5 );\cf3\par
+\par
+\tab\tab\cf9 if\cf3  \cf5 (\cf13 new_client\cf5 .\cf11 socket\cf3  \cf5 !=\cf3  \cf8 0\cf5 )\{\cf3\par
+\tab\tab\tab\cf9 int\cf3  \cf12 iResult\cf3  \cf5 =\cf3  \cf12 recv\cf5 (\cf13 new_client\cf5 .\cf11 socket\cf5 ,\cf3  \cf12 tempmsg\cf5 ,\cf3  \cf6 DEFAULT_BUFLEN\cf5 ,\cf3  \cf8 0\cf5 );\cf3\par
+\par
+\tab\tab\tab\cf9 if\cf3  \cf5 (\cf12 iResult\cf3  \cf5 !=\cf3  \cf6 SOCKET_ERROR\cf5 )\{\cf3\par
+\tab\tab\tab\tab\cf9 if\cf3  \cf5 (\cf12 strcmp\cf5 (\cf4 ""\cf5 ,\cf3  \cf12 tempmsg\cf5 ))\cf3\par
+\tab\tab\tab\tab\tab\cf12 msg\cf3  \cf5 =\cf3  \cf4 "Client #"\cf3  \cf5 +\cf3  \cf12 std\cf5 ::\cf12 to_string\cf5 (\cf13 new_client\cf5 .\cf11 id\cf5 )\cf3  \cf5 +\cf3  \cf4 ": "\cf3  \cf5 +\cf3  \cf12 tempmsg\cf5 ;\cf3\par
+\par
+\tab\tab\tab\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf12 msg\cf5 .\cf12 c_str\cf5 ()\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\par
+\tab\tab\tab\tab\cf7 //Broadcast that message to the other clients\cf3\par
+\tab\tab\tab\tab\cf9 for\cf3  \cf5 (\cf9 int\cf3  \cf12 i\cf3  \cf5 =\cf3  \cf8 0\cf5 ;\cf3  \cf12 i\cf3  \cf5 <\cf3  \cf12 MAX_CLIENTS\cf5 ;\cf3  \cf12 i\cf5 ++)\{\cf3\par
+\tab\tab\tab\tab\tab\cf9 if\cf3  \cf5 (\cf13 client_array\cf5 [\cf12 i\cf5 ].\cf11 socket\cf3  \cf5 !=\cf3  \cf6 INVALID_SOCKET\cf5 )\cf3\par
+\tab\tab\tab\tab\tab\cf9 if\cf3  \cf5 (\cf13 new_client\cf5 .\cf11 id\cf3  \cf5 !=\cf3  \cf12 i\cf5 )\cf3\par
+\tab\tab\tab\tab\tab\tab\cf12 iResult\cf3  \cf5 =\cf3  \cf12 send\cf5 (\cf13 client_array\cf5 [\cf12 i\cf5 ].\cf11 socket\cf5 ,\cf3  \cf12 msg\cf5 .\cf12 c_str\cf5 (),\cf3  \cf12 strlen\cf5 (\cf12 msg\cf5 .\cf12 c_str\cf5 ()),\cf3  \cf8 0\cf5 );\cf3\par
+\tab\tab\tab\tab\cf5\}\cf3\par
+\tab\tab\tab\cf5\}\cf3\par
+\tab\tab\tab\cf9 else\cf5\{\cf3\par
+\tab\tab\tab\tab\cf12 msg\cf3  \cf5 =\cf3  \cf4 "Client #"\cf3  \cf5 +\cf3  \cf12 std\cf5 ::\cf12 to_string\cf5 (\cf13 new_client\cf5 .\cf11 id\cf5 )\cf3  \cf5 +\cf3  \cf4 " Disconnected"\cf5 ;\cf3\par
+\par
+\tab\tab\tab\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf12 msg\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\par
+\tab\tab\tab\tab\cf12 closesocket\cf5 (\cf13 new_client\cf5 .\cf11 socket\cf5 );\cf3\par
+\tab\tab\tab\tab\cf12 closesocket\cf5 (\cf13 client_array\cf5 [\cf13 new_client\cf5 .\cf11 id\cf5 ].\cf11 socket\cf5 );\cf3\par
+\tab\tab\tab\tab\cf13 client_array\cf5 [\cf13 new_client\cf5 .\cf11 id\cf5 ].\cf11 socket\cf3  \cf5 =\cf3  \cf6 INVALID_SOCKET\cf5 ;\cf3\par
+\par
+\tab\tab\tab\tab\cf7 //Broadcast the disconnection message to the other clients\cf3\par
+\tab\tab\tab\tab\cf9 for\cf3  \cf5 (\cf9 int\cf3  \cf12 i\cf3  \cf5 =\cf3  \cf8 0\cf5 ;\cf3  \cf12 i\cf3  \cf5 <\cf3  \cf12 MAX_CLIENTS\cf5 ;\cf3  \cf12 i\cf5 ++)\{\cf3\par
+\tab\tab\tab\tab\tab\cf9 if\cf3  \cf5 (\cf13 client_array\cf5 [\cf12 i\cf5 ].\cf11 socket\cf3  \cf5 !=\cf3  \cf6 INVALID_SOCKET\cf5 )\cf3\par
+\tab\tab\tab\tab\tab\tab\cf12 iResult\cf3  \cf5 =\cf3  \cf12 send\cf5 (\cf13 client_array\cf5 [\cf12 i\cf5 ].\cf11 socket\cf5 ,\cf3  \cf12 msg\cf5 .\cf12 c_str\cf5 (),\cf3  \cf12 strlen\cf5 (\cf12 msg\cf5 .\cf12 c_str\cf5 ()),\cf3  \cf8 0\cf5 );\cf3\par
+\tab\tab\tab\tab\cf5\}\cf3\par
+\tab\tab\tab\tab\cf9 break\cf5 ;\cf3\par
+\tab\tab\tab\cf5\}\cf3\par
+\tab\tab\cf5\}\cf3\par
+\tab\cf5\}\cf3  \cf7 //end while\cf3\par
+\tab\cf13 thread\cf5 .\cf12 detach\cf5 ();\cf3\par
+\tab\cf9 return\cf3  \cf8 0\cf5 ;\cf3\par
+\cf5\}\cf3\par
+\par
+\cf9 int\cf3  \cf12 main\cf5 ()\{\cf3\par
+\tab\cf10 WSADATA\cf3  \cf12 wsaData\cf5 ;\cf3\par
+\tab\cf9 struct\cf3  \cf10 addrinfo\cf3  \cf12 hints\cf5 ;\cf3\par
+\tab\cf9 struct\cf3  \cf10 addrinfo\cf3  \cf5 *\cf12 server\cf3  \cf5 =\cf3  \cf6 NULL\cf5 ;\cf3\par
+\tab\cf10 SOCKET\cf3  \cf12 server_socket\cf3  \cf5 =\cf3  \cf6 INVALID_SOCKET\cf5 ;\cf3\par
+\tab\cf12 std\cf5 ::\cf10 string\cf3  \cf12 msg\cf3  \cf5 =\cf3  \cf4 ""\cf5 ;\cf3\par
+\tab\cf12 std\cf5 ::\cf10 vector\cf5 <\cf10 client_type\cf5 >\cf3  \cf12 client\cf5 (\cf12 MAX_CLIENTS\cf5 );\cf3\par
+\tab\cf9 int\cf3  \cf12 num_clients\cf3  \cf5 =\cf3  \cf8 0\cf5 ;\cf3\par
+\tab\cf9 int\cf3  \cf12 temp_id\cf3  \cf5 =\cf3  \cf5 -\cf8 1\cf5 ;\cf3\par
+\tab\cf12 std\cf5 ::\cf10 thread\cf3  \cf12 my_thread\cf5 [\cf12 MAX_CLIENTS\cf5 ];\cf3\par
+\par
+\tab\cf7 //Initialize Winsock\cf3\par
+\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf4 "Intializing Winsock..."\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\tab\cf12 WSAStartup\cf5 (\cf6 MAKEWORD\cf5 (\cf8 2\cf5 ,\cf3  \cf8 2\cf5 ),\cf3  \cf5 &\cf12 wsaData\cf5 );\cf3\par
+\par
+\tab\cf7 //Setup hints\cf3\par
+\tab\cf6 ZeroMemory\cf5 (&\cf12 hints\cf5 ,\cf3  \cf9 sizeof\cf5 (\cf12 hints\cf5 ));\cf3\par
+\tab\cf12 hints\cf5 .\cf11 ai_family\cf3  \cf5 =\cf3  \cf6 AF_INET\cf5 ;\cf3\par
+\tab\cf12 hints\cf5 .\cf11 ai_socktype\cf3  \cf5 =\cf3  \cf6 SOCK_STREAM\cf5 ;\cf3\par
+\tab\cf12 hints\cf5 .\cf11 ai_protocol\cf3  \cf5 =\cf3  \cf14 IPPROTO_TCP\cf5 ;\cf3\par
+\tab\cf12 hints\cf5 .\cf11 ai_flags\cf3  \cf5 =\cf3  \cf6 AI_PASSIVE\cf5 ;\cf3\par
+\par
+\tab\cf7 //Setup Server\cf3\par
+\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf4 "Setting up server..."\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\tab\cf12 getaddrinfo\cf5 (\cf9 static_cast\cf5 <\cf10 LPCSTR\cf5 >(\cf6 IP_ADDRESS\cf5 ),\cf3  \cf6 DEFAULT_PORT\cf5 ,\cf3  \cf5 &\cf12 hints\cf5 ,\cf3  \cf5 &\cf12 server\cf5 );\cf3\par
+\par
+\tab\cf7 //Create a listening socket for connecting to server\cf3\par
+\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf4 "Creating server socket..."\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\tab\cf12 server_socket\cf3  \cf5 =\cf3  \cf12 socket\cf5 (\cf12 server\cf5 ->\cf11 ai_family\cf5 ,\cf3  \par
+\tab\tab\tab\tab\tab\cf12 server\cf5 ->\cf11 ai_socktype\cf5 ,\cf3  \par
+\tab\tab\tab\tab\tab\cf12 server\cf5 ->\cf11 ai_protocol\cf5 );\cf3\par
+\par
+\tab\cf7 //Setup socket options\cf3\par
+\tab\cf12 setsockopt\cf5 (\cf12 server_socket\cf5 ,\cf3  \cf6 SOL_SOCKET\cf5 ,\cf3  \cf6 SO_REUSEADDR\cf5 ,\cf3  \cf5 &\cf12 OPTION_VALUE\cf5 ,\cf3  \cf9 sizeof\cf5 (\cf9 int\cf5 ));\cf3  \cf7 //Make it possible to re-bind to a port that was used within the last 2 minutes\cf3\par
+\tab\cf12 setsockopt\cf5 (\cf12 server_socket\cf5 ,\cf3  \cf14 IPPROTO_TCP\cf5 ,\cf3  \cf6 TCP_NODELAY\cf5 ,\cf3  \cf5 &\cf12 OPTION_VALUE\cf5 ,\cf3  \cf9 sizeof\cf5 (\cf9 int\cf5 ));\cf3  \cf7 //Used for interactive programs\cf3\par
+\par
+\tab\cf7 //Assign an address to the server socket.\cf3\par
+\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf4 "Binding socket..."\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\tab\cf12 bind\cf5 (\cf3  \cf12 server_socket\cf5 ,\cf3  \par
+\tab\tab   \cf12 server\cf5 ->\cf11 ai_addr\cf5 ,\cf3  \par
+\tab\tab   \cf5 (\cf9 int\cf5 )\cf12 server\cf5 ->\cf11 ai_addrlen\cf5 );\cf3\par
+\par
+\tab\cf7 //Listen for incoming connections.\cf3\par
+\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf4 "Listening..."\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\tab\cf12 listen\cf5 (\cf12 server_socket\cf5 ,\cf3  \cf6 SOMAXCONN\cf5 );\cf3\par
+\par
+\tab\cf7 //Initialize the client list\cf3\par
+\tab\cf9 for\cf3  \cf5 (\cf9 int\cf3  \cf12 i\cf3  \cf5 =\cf3  \cf8 0\cf5 ;\cf3  \cf12 i\cf3  \cf5 <\cf3  \cf12 MAX_CLIENTS\cf5 ;\cf3  \cf12 i\cf5 ++)\{\cf3\par
+\tab\tab\cf12 client\cf5 [\cf12 i\cf5 ]\cf3  \cf5 =\cf3  \cf5\{\cf3  \cf5 -\cf8 1\cf5 ,\cf3  \cf6 INVALID_SOCKET\cf3  \cf5\};\cf3\par
+\tab\cf5\}\cf3\par
+\par
+\tab\cf9 while\cf3  \cf5 (\cf8 1\cf5 )\{\cf3\par
+\tab\tab\cf10 SOCKET\cf3  \cf12 incoming\cf3  \cf5 =\cf3  \cf6 INVALID_SOCKET\cf5 ;\cf3\par
+\tab\tab\cf12 incoming\cf3  \cf5 =\cf3  \cf12 accept\cf5 (\cf12 server_socket\cf5 ,\cf3  \cf6 NULL\cf5 ,\cf3  \cf6 NULL\cf5 );\cf3\par
+\par
+\tab\tab\cf9 if\cf3  \cf5 (\cf12 incoming\cf3  \cf5 ==\cf3  \cf6 INVALID_SOCKET\cf5 )\cf3  \cf9 continue\cf5 ;\cf3\par
+\par
+\tab\tab\cf7 //Reset the number of clients\cf3\par
+\tab\tab\cf12 num_clients\cf3  \cf5 =\cf3  \cf5 -\cf8 1\cf5 ;\cf3\par
+\par
+\tab\tab\cf7 //Create a temporary id for the next client\cf3\par
+\tab\tab\cf12 temp_id\cf3  \cf5 =\cf3  \cf5 -\cf8 1\cf5 ;\cf3\par
+\tab\tab\cf9 for\cf3  \cf5 (\cf9 int\cf3  \cf12 i\cf3  \cf5 =\cf3  \cf8 0\cf5 ;\cf3  \cf12 i\cf3  \cf5 <\cf3  \cf12 MAX_CLIENTS\cf5 ;\cf3  \cf12 i\cf5 ++)\{\cf3\par
+\tab\tab\tab\cf9 if\cf3  \cf5 (\cf12 client\cf5 [\cf12 i\cf5 ].\cf11 socket\cf3  \cf5 ==\cf3  \cf6 INVALID_SOCKET\cf3  \cf5 &&\cf3  \cf12 temp_id\cf3  \cf5 ==\cf3  \cf5 -\cf8 1\cf5 )\{\cf3\par
+\tab\tab\tab\tab\cf12 client\cf5 [\cf12 i\cf5 ].\cf11 socket\cf3  \cf5 =\cf3  \cf12 incoming\cf5 ;\cf3\par
+\tab\tab\tab\tab\cf12 client\cf5 [\cf12 i\cf5 ].\cf11 id\cf3  \cf5 =\cf3  \cf12 i\cf5 ;\cf3\par
+\tab\tab\tab\tab\cf12 temp_id\cf3  \cf5 =\cf3  \cf12 i\cf5 ;\cf3\par
+\tab\tab\tab\cf5\}\cf3\par
+\tab\tab\tab\cf9 if\cf3  \cf5 (\cf12 client\cf5 [\cf12 i\cf5 ].\cf11 socket\cf3  \cf5 !=\cf3  \cf6 INVALID_SOCKET\cf5 )\cf3\par
+\tab\tab\tab\tab\cf12 num_clients\cf5 ++;\cf3\par
+\tab\tab\cf5\}\cf3\par
+\tab\tab\cf9 if\cf3  \cf5 (\cf12 temp_id\cf3  \cf5 !=\cf3  \cf5 -\cf8 1\cf5 )\{\cf3\par
+\tab\tab\tab\cf7 //Send the id to that client\cf3\par
+\tab\tab\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf4 "Client #"\cf3  \cf5 <<\cf3  \cf12 client\cf5 [\cf12 temp_id\cf5 ].\cf11 id\cf3  \cf5 <<\cf3  \cf4 " Accepted"\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\tab\tab\tab\cf12 msg\cf3  \cf5 =\cf3  \cf12 std\cf5 ::\cf12 to_string\cf5 (\cf12 client\cf5 [\cf12 temp_id\cf5 ].\cf11 id\cf5 );\cf3\par
+\tab\tab\tab\cf12 send\cf5 (\cf12 client\cf5 [\cf12 temp_id\cf5 ].\cf11 socket\cf5 ,\cf3  \cf12 msg\cf5 .\cf12 c_str\cf5 (),\cf3  \cf12 strlen\cf5 (\cf12 msg\cf5 .\cf12 c_str\cf5 ()),\cf3  \cf8 0\cf5 );\cf3\par
+\par
+\tab\tab\tab\cf7 //Create a thread process for that client\cf3\par
+\tab\tab\tab\cf12 my_thread\cf5 [\cf12 temp_id\cf5 ]\cf3  \cf5 =\cf3  \cf12 std\cf5 ::\cf10 thread\cf5 (\cf12 process_client\cf5 ,\cf3  \cf12 std\cf5 ::\cf12 ref\cf5 (\cf12 client\cf5 [\cf12 temp_id\cf5 ]),\cf3  \cf12 std\cf5 ::\cf12 ref\cf5 (\cf12 client\cf5 ),\cf3  \cf12 std\cf5 ::\cf12 ref\cf5 (\cf12 my_thread\cf5 [\cf12 temp_id\cf5 ]));\cf3\par
+\tab\tab\cf5\}\cf3\par
+\tab\tab\cf9 else\cf5\{\cf3\par
+\tab\tab\tab\cf12 msg\cf3  \cf5 =\cf3  \cf4 "Server is full"\cf5 ;\cf3\par
+\tab\tab\tab\cf12 send\cf5 (\cf12 incoming\cf5 ,\cf3  \cf12 msg\cf5 .\cf12 c_str\cf5 (),\cf3  \cf12 strlen\cf5 (\cf12 msg\cf5 .\cf12 c_str\cf5 ()),\cf3  \cf8 0\cf5 );\cf3\par
+\tab\tab\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf12 msg\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\tab\tab\cf5\}\cf3\par
+\tab\cf5\}\cf3  \cf7 //end while\cf3\par
+\par
+\tab\cf7 //Close listening socket\cf3\par
+\tab\cf12 closesocket\cf5 (\cf12 server_socket\cf5 );\cf3\par
+\par
+\tab\cf7 //Close client socket\cf3\par
+\tab\cf9 for\cf3  \cf5 (\cf9 int\cf3  \cf12 i\cf3  \cf5 =\cf3  \cf8 0\cf5 ;\cf3  \cf12 i\cf3  \cf5 <\cf3  \cf12 MAX_CLIENTS\cf5 ;\cf3  \cf12 i\cf5 ++)\{\cf3\par
+\tab\tab\cf12 my_thread\cf5 [\cf12 i\cf5 ].\cf12 detach\cf5 ();\cf3\par
+\tab\tab\cf12 closesocket\cf5 (\cf12 client\cf5 [\cf12 i\cf5 ].\cf11 socket\cf5 );\cf3\par
+\tab\cf5\}\cf3\par
+\par
+\tab\cf7 //Clean up Winsock\cf3\par
+\tab\cf12 WSACleanup\cf5 ();\cf3\par
+\tab\cf12 std\cf5 ::\cf12 cout\cf3  \cf5 <<\cf3  \cf4 "Program has ended successfully"\cf3  \cf5 <<\cf3  \cf12 std\cf5 ::\cf12 endl\cf5 ;\cf3\par
+\par
+\tab\cf12 system\cf5 (\cf4 "pause"\cf5 );\cf3\par
+\tab\cf9 return\cf3  \cf8 0\cf5 ;\cf3\par
+\cf5\}\cf0\highlight0\f1\fs22\par
+}
+ 

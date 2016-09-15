@@ -1,0 +1,160 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil Consolas;}{\f1\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red155\green155\blue155;\red30\green30\blue30;\red220\green220\blue220;\red214\green157\blue133;\red86\green156\blue214;\red200\green200\blue200;\red180\green180\blue180;\red189\green99\blue197;\red181\green206\blue168;\red87\green166\blue74;\red78\green201\blue176;\red218\green218\blue218;\red127\green127\blue127;\red184\green215\blue163;}
+{\*\generator Riched20 10.0.10240}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\cf1\highlight2\f0\fs19\lang9 #include\cf3  \cf4 "stdafx.h"\cf3\par
+\cf1 #include\cf3  \cf4 <winsock2.h>\cf3  \par
+\cf1 #include\cf3  \cf4 <ws2tcpip.h>\cf3\par
+\cf1 #include\cf3  \cf4 <iostream>\cf3\par
+\cf1 #include\cf3  \cf4 <string>\cf3\par
+\cf1 #include\cf3  \cf4 <thread>\cf3\par
+\par
+\cf5 using\cf3  \cf5 namespace\cf3  \cf6 std\cf7 ;\cf3\par
+\par
+\cf1 #pragma\cf3  \cf1 comment\cf3  \cf7 (\cf1 lib\cf7 ,\cf3  \cf4 "Ws2_32.lib"\cf7 )\cf3\par
+\par
+\cf1 #define\cf3  \cf8 DEFAULT_BUFLEN\cf3  \cf9 512\cf3  \cf10 //not sure why but it works  \cf3\par
+\cf1 #define\cf3  \cf8 IP_ADDRESS\cf3  \cf4 "192.168.254.59"\cf3  \cf10 //IP of my laptop from ipconfig\cf3\par
+\cf1 #define\cf3  \cf8 DEFAULT_PORT\cf3  \cf4 "3504"\cf3  \cf10 //not sure why but it works\cf3\par
+\par
+\cf5 struct\cf3  \cf11 client_type\cf7\{\cf3\par
+\tab\cf11 SOCKET\cf3  \cf12 socket\cf7 ;\cf3\par
+\tab\cf5 int\cf3  \cf12 id\cf7 ;\cf3\par
+\tab\cf5 char\cf3  \cf12 received_message\cf7 [\cf8 DEFAULT_BUFLEN\cf7 ];\cf3\par
+\cf7\};\cf3\par
+\par
+\cf5 int\cf3  \cf6 process_client\cf7 (\cf11 client_type\cf3  \cf7 &\cf3 new_client\cf7 );\cf3\par
+\cf5 int\cf3  \cf6 main\cf7 ();\cf3\par
+\par
+\cf5 int\cf3  \cf6 process_client\cf7 (\cf11 client_type\cf3  \cf7 &\cf13 new_client\cf7 )\{\cf3\par
+\tab\cf5 while\cf3  \cf7 (\cf9 1\cf7 )\{\cf3\par
+\tab\tab\cf6 memset\cf7 (\cf13 new_client\cf7 .\cf12 received_message\cf7 ,\cf3  \cf9 0\cf7 ,\cf3  \cf8 DEFAULT_BUFLEN\cf7 );\cf3\par
+\par
+\tab\tab\cf5 if\cf3  \cf7 (\cf13 new_client\cf7 .\cf12 socket\cf3  \cf7 !=\cf3  \cf9 0\cf7 )\cf3\tab\cf7\{\cf3\par
+\tab\tab\tab\cf5 int\cf3  \cf6 iResult\cf3  \cf7 =\cf3  \cf6 recv\cf7 (\cf13 new_client\cf7 .\cf12 socket\cf7 ,\cf3  \cf13 new_client\cf7 .\cf12 received_message\cf7 ,\cf3  \cf8 DEFAULT_BUFLEN\cf7 ,\cf3  \cf9 0\cf7 );\cf3\par
+\par
+\tab\tab\tab\cf5 if\cf3  \cf7 (\cf6 iResult\cf3  \cf7 !=\cf3  \cf8 SOCKET_ERROR\cf7 )\cf3\par
+\tab\tab\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf13 new_client\cf7 .\cf12 received_message\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\tab\cf5 else\cf7\{\cf3\par
+\tab\tab\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "recv() failed: "\cf3  \cf7 <<\cf3  \cf6 WSAGetLastError\cf7 ()\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\tab\tab\cf5 break\cf7 ;\cf3\par
+\tab\tab\tab\cf7\}\cf3\par
+\tab\tab\cf7\}\cf3\par
+\tab\cf7\}\cf3\par
+\par
+\tab\cf5 if\cf3  \cf7 (\cf6 WSAGetLastError\cf7 ()\cf3  \cf7 ==\cf3  \cf8 WSAECONNRESET\cf7 )\cf3\par
+\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "The server has disconnected"\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\par
+\tab\cf5 return\cf3  \cf9 0\cf7 ;\cf3\par
+\cf7\}\cf3\par
+\par
+\cf5 int\cf3  \cf6 main\cf7 ()\{\cf3\par
+\tab\cf11 WSAData\cf3  \cf6 wsa_data\cf7 ;\cf3\par
+\tab\cf5 struct\cf3  \cf11 addrinfo\cf3  \cf7 *\cf6 result\cf3  \cf7 =\cf3  \cf8 NULL\cf7 ,\cf3  \cf7 *\cf6 ptr\cf3  \cf7 =\cf3  \cf8 NULL\cf7 ,\cf3  \cf6 hints\cf7 ;\cf3\par
+\tab\cf11 string\cf3  \cf6 sent_message\cf3  \cf7 =\cf3  \cf4 ""\cf7 ;\cf3\par
+\tab\cf11 client_type\cf3  \cf6 client\cf3  \cf7 =\cf3  \cf7\{\cf3  \cf8 INVALID_SOCKET\cf7 ,\cf3  \cf7 -\cf9 1\cf7 ,\cf3  \cf4 ""\cf3  \cf7\};\cf3\par
+\tab\cf5 int\cf3  \cf6 iResult\cf3  \cf7 =\cf3  \cf9 0\cf7 ;\cf3\par
+\tab\cf11 string\cf3  \cf6 message\cf7 ;\cf3\par
+\par
+\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "Starting Client...\\n"\cf7 ;\cf3\par
+\par
+\tab\cf10 // Initialize Winsock\cf3\par
+\tab\cf6 iResult\cf3  \cf7 =\cf3  \cf6 WSAStartup\cf7 (\cf8 MAKEWORD\cf7 (\cf9 2\cf7 ,\cf3  \cf9 2\cf7 ),\cf3  \cf7 &\cf6 wsa_data\cf7 );\cf3\par
+\tab\cf5 if\cf3  \cf7 (\cf6 iResult\cf3  \cf7 !=\cf3  \cf9 0\cf7 )\cf3  \cf7\{\cf3\par
+\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "WSAStartup() failed with error: "\cf3  \cf7 <<\cf3  \cf6 iResult\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\cf5 return\cf3  \cf9 1\cf7 ;\cf3\par
+\tab\cf7\}\cf3\par
+\par
+\tab\cf8 ZeroMemory\cf7 (&\cf6 hints\cf7 ,\cf3  \cf5 sizeof\cf7 (\cf6 hints\cf7 ));\cf3\par
+\tab\cf6 hints\cf7 .\cf12 ai_family\cf3  \cf7 =\cf3  \cf8 AF_UNSPEC\cf7 ;\cf3\par
+\tab\cf6 hints\cf7 .\cf12 ai_socktype\cf3  \cf7 =\cf3  \cf8 SOCK_STREAM\cf7 ;\cf3\par
+\tab\cf6 hints\cf7 .\cf12 ai_protocol\cf3  \cf7 =\cf3  \cf14 IPPROTO_TCP\cf7 ;\cf3\par
+\par
+\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "Connecting...\\n"\cf7 ;\cf3\par
+\par
+\tab\cf10 // Resolve the server address and port\cf3\par
+\tab\cf6 iResult\cf3  \cf7 =\cf3  \cf6 getaddrinfo\cf7 (\cf5 static_cast\cf7 <\cf11 LPCSTR\cf7 >(\cf8 IP_ADDRESS\cf7 ),\cf3  \cf8 DEFAULT_PORT\cf7 ,\cf3  \cf7 &\cf6 hints\cf7 ,\cf3  \cf7 &\cf6 result\cf7 );\cf3\par
+\tab\cf5 if\cf3  \cf7 (\cf6 iResult\cf3  \cf7 !=\cf3  \cf9 0\cf7 )\cf3  \cf7\{\cf3\par
+\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "getaddrinfo() failed with error: "\cf3  \cf7 <<\cf3  \cf6 iResult\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\cf6 WSACleanup\cf7 ();\cf3\par
+\tab\tab\cf6 system\cf7 (\cf4 "pause"\cf7 );\cf3\par
+\tab\tab\cf5 return\cf3  \cf9 1\cf7 ;\cf3\par
+\tab\cf7\}\cf3\par
+\par
+\tab\cf10 // Attempt to connect to an address until one succeeds\cf3\par
+\tab\cf5 for\cf3  \cf7 (\cf6 ptr\cf3  \cf7 =\cf3  \cf6 result\cf7 ;\cf3  \cf6 ptr\cf3  \cf7 !=\cf3  \cf8 NULL\cf7 ;\cf3  \cf6 ptr\cf3  \cf7 =\cf3  \cf6 ptr\cf7 ->\cf12 ai_next\cf7 )\cf3  \cf7\{\cf3\par
+\par
+\tab\tab\cf10 // Create a SOCKET for connecting to server\cf3\par
+\tab\tab\cf6 client\cf7 .\cf12 socket\cf3  \cf7 =\cf3  \cf6 socket\cf7 (\cf6 ptr\cf7 ->\cf12 ai_family\cf7 ,\cf3  \par
+\tab\tab\tab\tab\tab\tab\tab    \cf6 ptr\cf7 ->\cf12 ai_socktype\cf7 ,\cf3\par
+\tab\tab\tab\tab\tab\tab\tab    \cf6 ptr\cf7 ->\cf12 ai_protocol\cf7 );\cf3\par
+\tab\tab\cf5 if\cf3  \cf7 (\cf6 client\cf7 .\cf12 socket\cf3  \cf7 ==\cf3  \cf8 INVALID_SOCKET\cf7 )\cf3  \cf7\{\cf3\par
+\tab\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "socket() failed with error: "\cf3  \cf7 <<\cf3  \cf6 WSAGetLastError\cf7 ()\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\tab\cf6 WSACleanup\cf7 ();\cf3\par
+\tab\tab\tab\cf6 system\cf7 (\cf4 "pause"\cf7 );\cf3\par
+\tab\tab\tab\cf5 return\cf3  \cf9 1\cf7 ;\cf3\par
+\tab\tab\cf7\}\cf3\par
+\par
+\tab\tab\cf10 // Connect to server.\cf3\par
+\tab\tab\cf6 iResult\cf3  \cf7 =\cf3  \cf6 connect\cf7 (\cf6 client\cf7 .\cf12 socket\cf7 ,\cf3  \par
+\tab\tab\tab\tab\tab\tab   \cf6 ptr\cf7 ->\cf12 ai_addr\cf7 ,\cf3\tab\par
+\tab\tab\tab\tab\tab\tab   \cf7 (\cf5 int\cf7 )\cf6 ptr\cf7 ->\cf12 ai_addrlen\cf7 );\cf3\par
+\tab\tab\cf5 if\cf3  \cf7 (\cf6 iResult\cf3  \cf7 ==\cf3  \cf8 SOCKET_ERROR\cf7 )\cf3  \cf7\{\cf3\par
+\tab\tab\tab\cf6 closesocket\cf7 (\cf6 client\cf7 .\cf12 socket\cf7 );\cf3\par
+\tab\tab\tab\cf6 client\cf7 .\cf12 socket\cf3  \cf7 =\cf3  \cf8 INVALID_SOCKET\cf7 ;\cf3\par
+\tab\tab\tab\cf5 continue\cf7 ;\cf3\par
+\tab\tab\cf7\}\cf3\par
+\tab\tab\cf5 break\cf7 ;\cf3\par
+\tab\cf7\}\cf3\par
+\tab\cf6 freeaddrinfo\cf7 (\cf6 result\cf7 );\cf3\par
+\par
+\tab\cf5 if\cf3  \cf7 (\cf6 client\cf7 .\cf12 socket\cf3  \cf7 ==\cf3  \cf8 INVALID_SOCKET\cf7 )\cf3  \cf7\{\cf3\par
+\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "Unable to connect to server!"\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\cf6 WSACleanup\cf7 ();\cf3\par
+\tab\tab\cf6 system\cf7 (\cf4 "pause"\cf7 );\cf3\par
+\tab\tab\cf5 return\cf3  \cf9 1\cf7 ;\cf3\par
+\tab\cf7\}\cf3\par
+\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "Successfully Connected"\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\par
+\tab\cf10 //Obtain id from server for this client;\cf3\par
+\tab\cf6 recv\cf7 (\cf6 client\cf7 .\cf12 socket\cf7 ,\cf3  \cf6 client\cf7 .\cf12 received_message\cf7 ,\cf3  \cf8 DEFAULT_BUFLEN\cf7 ,\cf3  \cf9 0\cf7 );\cf3\par
+\tab\cf6 message\cf3  \cf7 =\cf3  \cf6 client\cf7 .\cf12 received_message\cf7 ;\cf3\par
+\par
+\tab\cf5 if\cf3  \cf7 (\cf6 message\cf3  \cf7 !=\cf3  \cf4 "Server is full"\cf7 )\{\cf3\par
+\tab\tab\cf6 client\cf7 .\cf12 id\cf3  \cf7 =\cf3  \cf6 atoi\cf7 (\cf6 client\cf7 .\cf12 received_message\cf7 );\cf3\par
+\tab\tab\cf11 thread\cf3  \cf6 my_thread\cf7 (\cf6 process_client\cf7 ,\cf3  \cf6 client\cf7 );\cf3\par
+\par
+\tab\tab\cf5 while\cf3  \cf7 (\cf9 1\cf7 )\cf3\par
+\tab\tab\cf7\{\cf3\par
+\tab\tab\tab\cf6 getline\cf7 (\cf6 cin\cf7 ,\cf3  \cf6 sent_message\cf7 );\cf3\par
+\tab\tab\tab\cf6 iResult\cf3  \cf7 =\cf3  \cf6 send\cf7 (\cf6 client\cf7 .\cf12 socket\cf7 ,\cf3  \cf6 sent_message\cf7 .\cf6 c_str\cf7 (),\cf3  \cf6 strlen\cf7 (\cf6 sent_message\cf7 .\cf6 c_str\cf7 ()),\cf3  \cf9 0\cf7 );\cf3\par
+\par
+\tab\tab\tab\cf5 if\cf3  \cf7 (\cf6 iResult\cf3  \cf7 <=\cf3  \cf9 0\cf7 )\cf3\par
+\tab\tab\tab\cf7\{\cf3\par
+\tab\tab\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "send() failed: "\cf3  \cf7 <<\cf3  \cf6 WSAGetLastError\cf7 ()\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\tab\tab\cf5 break\cf7 ;\cf3\par
+\tab\tab\tab\cf7\}\cf3\par
+\tab\tab\cf7\}\cf3\par
+\par
+\tab\tab\cf10 //Shutdown the connection since no more data will be sent\cf3\par
+\tab\tab\cf6 my_thread\cf7 .\cf6 detach\cf7 ();\cf3\par
+\tab\cf7\}\cf3\par
+\tab\cf5 else\cf3\par
+\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf6 client\cf7 .\cf12 received_message\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\par
+\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "Shutting down socket..."\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\cf6 iResult\cf3  \cf7 =\cf3  \cf6 shutdown\cf7 (\cf6 client\cf7 .\cf12 socket\cf7 ,\cf3  \cf8 SD_SEND\cf7 );\cf3\par
+\tab\cf5 if\cf3  \cf7 (\cf6 iResult\cf3  \cf7 ==\cf3  \cf8 SOCKET_ERROR\cf7 )\cf3  \cf7\{\cf3\par
+\tab\tab\cf6 cout\cf3  \cf7 <<\cf3  \cf4 "shutdown() failed with error: "\cf3  \cf7 <<\cf3  \cf6 WSAGetLastError\cf7 ()\cf3  \cf7 <<\cf3  \cf6 endl\cf7 ;\cf3\par
+\tab\tab\cf6 closesocket\cf7 (\cf6 client\cf7 .\cf12 socket\cf7 );\cf3\par
+\tab\tab\cf6 WSACleanup\cf7 ();\cf3\par
+\tab\tab\cf6 system\cf7 (\cf4 "pause"\cf7 );\cf3\par
+\tab\tab\cf5 return\cf3  \cf9 1\cf7 ;\cf3\par
+\tab\cf7\}\cf3\par
+\par
+\tab\cf6 closesocket\cf7 (\cf6 client\cf7 .\cf12 socket\cf7 );\cf3\par
+\tab\cf6 WSACleanup\cf7 ();\cf3\par
+\tab\cf6 system\cf7 (\cf4 "pause"\cf7 );\cf3\par
+\tab\cf5 return\cf3  \cf9 0\cf7 ;\cf3\par
+\cf7\}\cf0\highlight0\f1\fs22\par
+}
+ 
